@@ -1,0 +1,1111 @@
+<?php
+
+/**
+ * Plugin Name: Gravity forms RazorSync Add-On
+ * Plugin URI:  https://solomediagroup.co
+ * Description: Integrates Gravity Forms with RazorSync, allowing form submissions to be automatically sent to your RazorSync account.
+ * Version:     1.0.0
+ * Author:      aptDigital.io.
+ * Author URI:  https://
+ */
+
+/** If this file is called directly, abort. */
+if (!defined('ABSPATH')) {
+    die;
+}
+
+/**
+ * Razorsync_API main class.
+ *
+ */
+class Razorsync_API
+{
+    /**
+     * @var string Name of the plugin
+     *
+     * @since 1.0
+     */
+    protected $_title = 'Gravity form to RazorSync API';
+
+    private static $instance;
+
+    ## Basic variables
+    private $baseURL;
+    private $apiToken;
+    private $apiHeader;
+
+    ## Form array
+    private $form = [
+        'id'     => 10,
+        'fields' => [
+            'firstname'     => '8.3',
+            'lastname'      => '8.6',
+            'email'         => '9',
+            'phone'         => '10',
+            'phone_carrier' => '15',
+            'time'          => '14',
+            'date'          => '2',
+            'streetaddress' => '5.1',
+            'city'          => '5.3',
+            'state'         => '5.4',
+            'zip'           => '5.5',
+        ],
+        'services' => [
+            "1.1",
+            "1.2",
+            "1.3",
+            "1.4",
+            "1.5",
+            "1.6",
+            "1.7",
+            "1.8",
+            "1.9",
+            "1.11",
+            "1.12"
+        ],
+        'carriers' => [
+            '1' => 6,
+            '2' => 3,
+            '3' => 7,
+            '4' => 5,
+            '5' => 8,
+            '6' => 14,
+            '7' => ''
+        ],
+        'service_forms' => [
+            "Refrigerator" => [
+                "id" => 1097,
+                "fields" => [
+                    1903 => [
+                        "id" => 37,
+                        "type" => "text"
+                    ],
+                    2038 => [
+                        "id" => 38,
+                        "type" => "text"
+                    ],
+                    2039 => [
+                        "id" => 39,
+                        "type" => "text"
+                    ],
+                    1910 => [
+                        "id" => 232,
+                        "type" => "text"
+                    ],
+                    1953 => [
+                        "id" => 43,
+                        "type" => "text"
+                    ],
+                    1904 => [
+                        "id" => 44,
+                        "type" => "select"
+                    ],
+                    2014 => [
+                        "id" => 47,
+                        "type" => "select"
+                    ],
+                    2013 => [
+                        "id" => 48,
+                        "type" => "checkbox"
+                    ],
+                    1905 => [
+                        "id" => 49,
+                        "type" => "checkbox"
+                    ],
+                    1907 => [
+                        "id" => 52,
+                        "type" => "checkbox"
+                    ],
+                    1944 => [
+                        "id" => 53,
+                        "type" => "checkbox"
+                    ],
+                    1908 => [
+                        "id" => 54,
+                        "type" => "fileupload"
+                    ],
+                    1909 => [
+                        "id" => 57,
+                        "type" => "fileupload"
+                    ]
+                ]
+            ],
+            "Dryer" => [
+                "id" => 1095,
+                "fields" => [
+                    1893 => [
+                        "id" => 60,
+                        "type" => "text"
+                    ],
+                    2043 => [
+                        "id" => 61,
+                        "type" => "text"
+                    ],
+                    2044 => [
+                        "id" => 62,
+                        "type" => "text"
+                    ],
+                    1887 => [
+                        "id" => 239,
+                        "type" => "text"
+                    ],
+                    1954 => [
+                        "id" => 66,
+                        "type" => "text"
+                    ],
+                    1895 => [
+                        "id" => 67,
+                        "type" => "select"
+                    ],
+                    1969 => [
+                        "id" => 70,
+                        "type" => "checkbox"
+                    ],
+                    1888 => [
+                        "id" => 71,
+                        "type" => "select"
+                    ],
+                    1889 => [
+                        "id" => 72,
+                        "type" => "checkbox"
+                    ],
+                    1945 => [
+                        "id" => 75,
+                        "type" => "checkbox"
+                    ],
+                    1884 => [
+                        "id" => 76,
+                        "type" => "fileupload"
+                    ],
+                    1885 => [
+                        "id" => 77,
+                        "type" => "fileupload"
+                    ]
+                ]
+            ],
+            "Washing Machine" => [
+                "id" => 1094,
+                "fields" => [
+                    1881 => [
+                        "id" => 80,
+                        "type" => "text"
+                    ],
+                    2047 => [
+                        "id" => 81,
+                        "type" => "text"
+                    ],
+                    2048 => [
+                        "id" => 82,
+                        "type" => "text"
+                    ],
+                    1876 => [
+                        "id" => 246,
+                        "type" => "text"
+                    ],
+                    1955 => [
+                        "id" => 86,
+                        "type" => "text"
+                    ],
+                    1892 => [
+                        "id" => 87,
+                        "type" => "select"
+                    ],
+                    1891 => [
+                        "id" => 90,
+                        "type" => "checkbox"
+                    ],
+                    1883 => [
+                        "id" => 91,
+                        "type" => "select"
+                    ],
+                    1877 => [
+                        "id" => 92,
+                        "type" => "checkbox"
+                    ],
+                    1878 => [
+                        "id" => 95,
+                        "type" => "checkbox"
+                    ],
+                    1880 => [
+                        "id" => 96,
+                        "type" => "fileupload"
+                    ],
+                    1882 => [
+                        "id" => 97,
+                        "type" => "fileupload"
+                    ]
+                ]
+            ],
+            "Dishwasher" => [
+                "id" => 1096,
+                "fields" => [
+                    1897 => [
+                        "id" => 100,
+                        "type" => "text"
+                    ],
+                    2049 => [
+                        "id" => 101,
+                        "type" => "text"
+                    ],
+                    2050 => [
+                        "id" => 102,
+                        "type" => "text"
+                    ],
+                    1901 => [
+                        "id" => 255,
+                        "type" => "text"
+                    ],
+                    1898 => [
+                        "id" => 106,
+                        "type" => "text"
+                    ],
+                    1899 => [
+                        "id" => 107,
+                        "type" => "checkbox"
+                    ],
+                    1900 => [
+                        "id" => 110,
+                        "type" => "select"
+                    ],
+                    1957 => [
+                        "id" => 111,
+                        "type" => "fileupload"
+                    ],
+                    1958 => [
+                        "id" => 112,
+                        "type" => "fileupload"
+                    ]
+                ]
+            ],
+            "Oven" => [
+                "id" => 1100,
+                "fields" => [
+                    1919 => [
+                        "id" => 115,
+                        "type" => "text"
+                    ],
+                    2053 => [
+                        "id" => 116,
+                        "type" => "text"
+                    ],
+                    2054 => [
+                        "id" => 117,
+                        "type" => "text"
+                    ],
+                    1922 => [
+                        "id" => 258,
+                        "type" => "text"
+                    ],
+                    1963 => [
+                        "id" => 121,
+                        "type" => "text"
+                    ],
+                    1971 => [
+                        "id" => 122,
+                        "type" => "select"
+                    ],
+                    1959 => [
+                        "id" => 125,
+                        "type" => "select"
+                    ],
+                    1962 => [
+                        "id" => 126,
+                        "type" => "select"
+                    ],
+                    1961 => [
+                        "id" => 127,
+                        "type" => "select"
+                    ],
+                    1960 => [
+                        "id" => 130,
+                        "type" => "checkbox"
+                    ],
+                    1976 => [
+                        "id" => 131,
+                        "type" => "checkbox"
+                    ],
+                    1920 => [
+                        "id" => 132,
+                        "type" => "fileupload"
+                    ],
+                    1921 => [
+                        "id" => 135,
+                        "type" => "fileupload"
+                    ]
+                ]
+            ],
+            "Range" => [
+                "id" => 1098,
+                "fields" => [
+                    1911 => [
+                        "id" => 138,
+                        "type" => "text"
+                    ],
+                    2051 => [
+                        "id" => 139,
+                        "type" => "text"
+                    ],
+                    2052 => [
+                        "id" => 140,
+                        "type" => "text"
+                    ],
+                    1914 => [
+                        "id" => 263,
+                        "type" => "text"
+                    ],
+                    1978 => [
+                        "id" => 144,
+                        "type" => "text"
+                    ],
+                    1972 => [
+                        "id" => 145,
+                        "type" => "select"
+                    ],
+                    1968 => [
+                        "id" => 148,
+                        "type" => "select"
+                    ],
+                    1989 => [
+                        "id" => 149,
+                        "type" => "select"
+                    ],
+                    1973 => [
+                        "id" => 150,
+                        "type" => "select"
+                    ],
+                    1974 => [
+                        "id" => 153,
+                        "type" => "checkbox"
+                    ],
+                    1975 => [
+                        "id" => 154,
+                        "type" => "checkbox"
+                    ],
+                    1912 => [
+                        "id" => 155,
+                        "type" => "fileupload"
+                    ],
+                    1913 => [
+                        "id" => 158,
+                        "type" => "fileupload"
+                    ],
+                    2059 => [
+                        "id" => 287,
+                        "type" => "checkbox"
+                    ]
+                ]
+            ],
+            "Microwave" => [
+                "id" => 1105,
+                "fields" => [
+                    1939 => [
+                        "id" => 161,
+                        "type" => "text"
+                    ],
+                    2045 => [
+                        "id" => 162,
+                        "type" => "text"
+                    ],
+                    2046 => [
+                        "id" => 163,
+                        "type" => "text"
+                    ],
+                    1942 => [
+                        "id" => 268,
+                        "type" => "text"
+                    ],
+                    1979 => [
+                        "id" => 167,
+                        "type" => "text"
+                    ],
+                    1987 => [
+                        "id" => 168,
+                        "type" => "select"
+                    ],
+                    1988 => [
+                        "id" => 171,
+                        "type" => "select"
+                    ],
+                    1977 => [
+                        "id" => 172,
+                        "type" => "checkbox"
+                    ],
+                    1940 => [
+                        "id" => 173,
+                        "type" => "fileupload"
+                    ],
+                    1941 => [
+                        "id" => 176,
+                        "type" => "fileupload"
+                    ]
+                ]
+            ],
+            "Cooktop" => [
+                "id" => 1099,
+                "fields" => [
+                    1915 => [
+                        "id" => 179,
+                        "type" => "text"
+                    ],
+                    2041 => [
+                        "id" => 180,
+                        "type" => "text"
+                    ],
+                    2042 => [
+                        "id" => 181,
+                        "type" => "text"
+                    ],
+                    1918 => [
+                        "id" => 271,
+                        "type" => "text"
+                    ],
+                    1985 => [
+                        "id" => 185,
+                        "type" => "text"
+                    ],
+                    1984 => [
+                        "id" => 186,
+                        "type" => "select"
+                    ],
+                    1986 => [
+                        "id" => 189,
+                        "type" => "checkbox"
+                    ],
+                    1916 => [
+                        "id" => 190,
+                        "type" => "fileupload"
+                    ],
+                    1917 => [
+                        "id" => 191,
+                        "type" => "fileupload"
+                    ],
+                    2060 => [
+                        "id" => 288,
+                        "type" => "checkbox"
+                    ]
+                ]
+            ],
+            "Fireplace" => [
+                "id" => 1101,
+                "fields" => [
+                    1923 => [
+                        "id" => 194,
+                        "type" => "text"
+                    ],
+                    2037 => [
+                        "id" => 195,
+                        "type" => "text"
+                    ],
+                    2040 => [
+                        "id" => 196,
+                        "type" => "text"
+                    ],
+                    1926 => [
+                        "id" => 274,
+                        "type" => "text"
+                    ],
+                    1981 => [
+                        "id" => 200,
+                        "type" => "checkbox"
+                    ],
+                    1924 => [
+                        "id" => 201,
+                        "type" => "fileupload"
+                    ],
+                    1925 => [
+                        "id" => 204,
+                        "type" => "fileupload"
+                    ]
+                ]
+            ],
+            "Garbage Disposal" => [
+                "id" => 1102,
+                "fields" => [
+                    1927 => [
+                        "id" => 207,
+                        "type" => "text"
+                    ],
+                    2036 => [
+                        "id" => 208,
+                        "type" => "text"
+                    ],
+                    1930 => [
+                        "id" => 279,
+                        "type" => "text"
+                    ],
+                    1980 => [
+                        "id" => 212,
+                        "type" => "checkbox"
+                    ],
+                    1928 => [
+                        "id" => 213,
+                        "type" => "fileupload"
+                    ],
+                    1929 => [
+                        "id" => 214,
+                        "type" => "fileupload"
+                    ]
+                ]
+            ],
+            "Under Counter Ice Maker" => [
+                "id" => 1103,
+                "fields" => [
+                    1931 => [
+                        "id" => 217,
+                        "type" => "text"
+                    ],
+                    2034 => [
+                        "id" => 218,
+                        "type" => "text"
+                    ],
+                    2035 => [
+                        "id" => 219,
+                        "type" => "text"
+                    ],
+                    1934 => [
+                        "id" => 284,
+                        "type" => "text"
+                    ],
+                    1983 => [
+                        "id" => 223,
+                        "type" => "checkbox"
+                    ],
+                    1932 => [
+                        "id" => 224,
+                        "type" => "fileupload"
+                    ],
+                    1933 => [
+                        "id" => 227,
+                        "type" => "fileupload"
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+    /**
+     * Singleton instance
+     *
+     * @return Razorsync_API Razorsync_API object
+     */
+    public static function getInstance()
+    {
+        if (empty(self::$instance)) {
+            self::$instance = new self;
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * @constructor function
+     */
+    public function __construct()
+    {
+        ## Load data variable and methods
+        $this->_load_components();
+        add_action('gform_after_submission', [$this, 'process_customer_api'], 10, 2);
+    }
+
+    /*
+    ** Load components
+    */
+    public function _load_components()
+    {
+        $this->set_base_url();
+        $this->set_api_token();
+        $this->set_api_headers();
+    }
+
+    /*
+    ** API base URL8
+    */
+    public function set_base_url()
+    {
+        return $this->baseURL = "https://WMA.0.razorsync.com/ApiService.svc";
+    }
+
+    /*
+    ** API Token
+    */
+    public function set_api_token()
+    {
+        return $this->apiToken = "5dcbfcbb-3dc8-4a06-bb6a-8c2b6ad12066";
+    }
+
+    /*
+    ** API headers
+    */
+    public function set_api_headers()
+    {
+        return $this->apiHeader = [
+            'Content-Type: application/json',
+            'Token: ' . $this->apiToken,
+            'Host: WMA.0.razorsync.com',
+            'Connection: Keep-Alive',
+            'ServerName: WMA'
+        ];
+    }
+
+    /*
+    ** Sending curl request
+    */
+    public function send_request($url, $method = "GET", $args = [], $headers = [])
+    {
+        if (empty($headers)) {
+            $headers = $this->apiHeader;
+        }
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        switch ($method) {
+            case 'POST':
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $args);  ##Post Fields
+                break;
+            case 'PUT':
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $args);
+                break;
+        }
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        $response = curl_exec($ch);
+
+        curl_close($ch);
+
+        return json_decode($response, true);
+    }
+
+    /*
+    ** Get customer details
+    */
+    public function get_customer($matches = [])
+    {
+        if (!empty($matches)) {
+            $keys = array_keys($matches);
+            $key = array_shift($keys);
+            $match = array_shift($matches);
+            $args = [
+                "SearchString" => $match,
+                "Page" => "1",
+                "Size" => "100"
+            ];
+
+            $url      = $this->baseURL . '/Customer/Search';
+            $response = $this->send_request($url, 'POST', json_encode($args));
+            if (!empty($response)) {
+                $customer = array_shift($response);
+
+                return [$key, $customer];
+            }
+
+            return $this->get_customer($matches);
+        }
+
+        return ["",[]];
+    }
+
+    /*
+    ** Set Arguments For Update Address
+    */
+    public function setUpdateAddress($data, $new_data)
+    {
+        return json_encode([
+            "AVSChecked"       => $data['Addresses'][0]['AVSChecked'],
+            "AddressLine1"     => $new_data['Addresses'][0]['AddressLine1'],
+            "AddressLine2"     => $new_data['Addresses'][0]['AddressLine2'],
+            "AddressName"      => $data['Addresses'][0]['AddressName'],
+            "AddressTypeId"    => $data['Addresses'][0]['AddressTypeId'],
+            "AppartmentNumber" => $data['Addresses'][0]['AppartmentNumber'],
+            "CustomerId"       => $data['Addresses'][0]['CustomerId'],
+            "Description"      => $data['Addresses'][0]['Description'],
+            "Id"               => $data['Addresses'][0]['Id'],
+            "SalespersonId"    => $data['Addresses'][0]['SalespersonId']
+        ]);
+    }
+
+    /*
+    ** Set Arguments For Update Customer
+    */
+    public function setUpdateCustomer($data, $new_data)
+    {
+        return json_encode([
+            "CompanyName"    => $data['CompanyName'],
+            "CustomId"       => $data['CustomId'],
+            "CustomerTypeId" => $data['CustomerTypeId'],
+            "DisplayName"    => $new_data['Contacts'][0]['FirstName'] . ' ' . $new_data['Contacts'][0]['LastName'],
+            "Id"             => $data['Id'],
+            "IsTaxable"      => $data['IsTaxable'],
+            "Notes"          => $data['Notes'],
+            "SourceTypeId"   => $data['SourceTypeId'],
+            "TaxCodeId"      => $data['TaxCodeId'],
+            "TaxNameId"      => $data['TaxNameId'],
+            "TaxRate"        => $data['TaxRate'],
+            "TierNumber"     => $data['TierNumber']
+        ]);
+    }
+
+    public function setContact($data, $new_data)
+    {
+        return json_encode([
+            "Id"             => $data['Contacts'][0]['Id'],
+            "CustomerId"     => $data['Contacts'][0]['CustomerId'],
+            "Phone"          => $new_data['Contacts'][0]['Phone'],
+            "MobilePhone"    => $new_data['Contacts'][0]['MobilePhone'],
+            "FirstName"      => $new_data['Contacts'][0]['FirstName'],
+            "LastName"       => $new_data['Contacts'][0]['LastName'],
+            "NotifyViaEmail" => false,
+            "NotifyViaSms"   => false,
+            "Email"          => $new_data['Contacts'][0]['Email'],
+            "CarrierId"      => $new_data['Contacts'][0]['CarrierId'],
+            "ContactTypeId"  => $data['Contacts'][0]['ContactTypeId']
+        ]);
+    }
+
+    /*
+    ** Update customer info to RazorSync
+    */
+    public function update_customer($data, $new_data = [])
+    {
+        ## If no data to update then return;
+        if (empty($new_data) || empty($data)) {
+            return;
+        }
+
+        $updated = false;
+        if (
+            $data['Contacts'][0]['Phone'] != $new_data['Contacts'][0]['Phone'] ||
+            strtolower($data['Contacts'][0]['FirstName']) != strtolower($new_data['Contacts'][0]['FirstName']) ||
+            strtolower($data['Contacts'][0]['LastName']) != strtolower($new_data['Contacts'][0]['LastName']) ||
+            strtolower($data['Contacts'][0]['Email']) != strtolower($new_data['Contacts'][0]['Email']) ||
+            $data['Contacts'][0]['CarrierId'] != $new_data['Contacts'][0]['CarrierId']
+        ) {
+            $updateContact = $this->setContact($data, $new_data);
+            $this->send_request($this->baseURL . '/Contact', 'PUT', $updateContact);
+
+            $updated = true;
+        }
+
+        if (
+            strtolower($data['Addresses'][0]['AddressLine1']) != strtolower($new_data['Addresses'][0]['AddressLine1']) ||
+            strtolower($data['Addresses'][0]['AddressLine2']) != strtolower($new_data['Addresses'][0]['AddressLine2'])
+        ) {
+            $updateAddress = $this->setUpdateAddress($data, $new_data);
+            $this->send_request($this->baseURL . '/Address', 'PUT', $updateAddress);
+
+            $updated = true;
+        }
+
+        $displayName = $new_data['Contacts'][0]['FirstName'] . ' ' . $new_data['Contacts'][0]['LastName'];
+        if ($data['DisplayName'] != $displayName || $updated) {
+            $updateCustomer = $this->setUpdateCustomer($data, $new_data);
+
+            $data = $this->send_request($this->baseURL . '/Customer', 'PUT', $updateCustomer);
+
+			$headers_mail[] = 'bcc: alex@aptdigital.io';
+            $message_mail = 'Please review the client '.$displayName.', there is a potential duplication of the information';
+            wp_mail('info@westmetroappliance.com', 'Update Customer', $message_mail, $headers_mail);
+        }
+
+        return $data;
+    }
+
+    /*
+    ** Add customer info to RazorSync
+    */
+    public function create_customer($customerData = "")
+    {
+        ## If no data to add then return;
+        if (empty($customerData)) {
+            return false;
+        }
+
+        ## Send request
+        $url = $this->baseURL . '/Customer/Create';
+        return $this->send_request($url, 'POST', json_encode($customerData));
+    }
+
+    /*
+    ** Set argument for create Service Request
+    */
+    public function setService($customer, $start_date, $end_date, $services = '')
+    {
+        $create_date = new \DateTime('now', new \DateTimeZone('UTC'));
+        $create_date = strtotime($create_date->format('c'))* 1000;
+
+        return [
+            "AddressId"   => $customer['Addresses'][0]['Id'],
+            "CustomerId"  => $customer['Id'],
+            "CreateDate"  => "/Date($create_date)/",
+            "Description" => "Service $services Repair",
+            "StartDate"   => "/Date($start_date)/",
+            "EndDate"     => "/Date($end_date)/",
+            "Summary"     => "Service Request",
+            "IsTimeSet"   => true
+        ];
+    }
+
+    /*
+    ** Create Service request
+    */
+    public function createService($customer, $start_date, $end_date, $services)
+    {
+        $args = $this->setService($customer, $start_date, $end_date, $services);
+        $url  = $this->baseURL . '/ServiceRequest/Create';
+
+        return $this->send_request($url, 'POST', json_encode($args));
+    }
+
+    /*
+    ** Set argument for create Work Order
+    */
+    public function setWorKOrder($service, $start_date, $end_date)
+    {
+        $create_date = new \DateTime('now', new \DateTimeZone('UTC'));
+        $create_date = strtotime($create_date->format('c'))* 1000;
+
+        return [
+            "ActorId" => 3,
+            "CreateDate"  => "/Date($create_date)/",
+            "StartDate"   => "/Date($start_date)/",
+            "EndDate"     => "/Date($end_date)/",
+            "Description" => "",
+            "FieldWorkerId" => 1,
+            "IdInContext" => 1,
+            "InvoicingMemo" => "Service Call",
+            "LocationId" => null,
+            "ServiceRequestId" => $service['Id'],
+            "StatusId" => 6
+        ];
+    }
+
+    /*
+    ** Create Work Order
+    */
+    public function createWorKOrder($customer, $start_date, $end_date)
+    {
+        $args = $this->setWorKOrder($customer, $start_date, $end_date);
+        $url  = $this->baseURL . '/WorkOrder/Create';
+
+        $response = $this->send_request($url, 'POST', json_encode($args));
+        if (!empty($response)) {
+            return $response;
+        }
+
+        return false;
+    }
+
+    public function attachServiceFormToWorkOrder($workOrder, $formID)
+    {
+        $args = json_encode([
+            "WorkOrderId" => $workOrder['Id'],
+            "ServiceFormId" => $formID
+        ]);
+
+        $response = $this->send_request($this->baseURL . '/ServiceForm/WorkOrder', 'POST', $args);
+        if (!empty($response)) {
+            return $response['Id'];
+        }
+
+        return false;
+    }
+
+    /*
+    ** Process RazorSync API for customer
+    */
+    public function process_customer_api($entry, $form)
+    {
+        if ($this->form['id'] != $form['id']) {
+            return;
+        }
+
+        ## Get for fields
+        $fields = $this->form['fields'];
+
+        ## Get for loop services GF
+        $services = $this->form['services'];
+
+        ## Get for carriers
+        $carriers = $this->form['carriers'];
+
+        ## Logs are saved into Gravity Forms Core
+        GFCommon::log_debug("Starting to process RazorSync API");
+
+        ## Get customer details by email and phonenumbder
+        $fname = !empty(rgar($entry, $fields['firstname'])) ? trim(rgar($entry, $fields['firstname'])) : "";
+        $lname = !empty(rgar($entry, $fields['lastname'])) ? trim(rgar($entry, $fields['lastname'])) : "";
+        $email = !empty(rgar($entry, $fields['email'])) ? strtolower(trim(rgar($entry, $fields['email']))) : "";
+        $phone = !empty(rgar($entry, $fields['phone'])) ? preg_replace("/[^0-9]/", "", rgar($entry, $fields['phone'])) : "";
+        $date = !empty(rgar($entry, $fields['date'])) ? rgar($entry, $fields['date']) : "";
+        $time = !empty(rgar($entry, $fields['time'])) ? rgar($entry, $fields['time']) : "";
+        $address_line1 = rgar($entry, $fields['streetaddress']);
+        $address_line2 = rgar($entry, $fields['city']) . ", " . rgar($entry, $fields['state']) . " " . rgar($entry, $fields['zip']);
+        $phone_carrier = !empty(rgar($entry, $fields['phone_carrier'])) ? rgar($entry, $fields['phone_carrier']) : "";
+
+        ## Search variables
+        $matches = [
+            "address" => "$address_line1 $address_line2",
+            "email" => $email,
+            "phone" => $phone
+        ];
+
+        $Sumaryservice = [];
+        foreach ($services as $service) {
+            if (!empty(rgar($entry, $service))) {
+                $Sumaryservice[] = rgar($entry, $service);
+            }
+        }
+
+        $summary_services  = '';
+        if (!empty($Sumaryservice)) {
+            $summary_services  = implode(', ', $Sumaryservice);
+        }
+
+        ## build customer data array
+        $data = [
+			"IsTaxable" => true,
+            "Contacts" => [
+                [
+                    "Phone"          => $phone,
+                    "MobilePhone"    => $phone,
+                    "FirstName"      => $fname,
+                    "LastName"       => $lname,
+                    "NotifyViaEmail" => true,
+                    "NotifyViaSms"   => true,
+                    "Email"          => $email
+                ]
+            ],
+            "Addresses" => [
+                [
+                    "AddressLine1" => $address_line1,
+                    "AddressLine2" => $address_line2
+                ]
+            ]
+        ];
+
+        $selectedCarrier = $carriers[(int)$phone_carrier] ?? '';
+        if (!empty($selectedCarrier)) {
+            $data["Contacts"][0]["CarrierId"] = $selectedCarrier;
+        } else {
+            $data["Contacts"][0]["CarrierId"] = 5;
+        }
+        [$matchedBy, $customer] = $this->get_customer($matches);
+
+        ## If customer found then update existing customer in RazorSync customer section
+        if (!empty($customer)) {
+            $firstName = strtolower($customer['Contacts'][0]['FirstName']);
+            $lastName = strtolower($customer['Contacts'][0]['LastName']);
+
+            if ($matchedBy != 'address' || ($firstName == strtolower($fname) && $lastName == strtolower($lname))) {
+                GFCommon::log_debug("Update Customer");
+                $customer = $this->update_customer($customer, $data);
+            }
+        } else {
+            ## Otherwise Add new customer in RazorSync customer section
+            GFCommon::log_debug("Create Customer");
+            $customer = $this->create_customer($data);
+        }
+
+        if (!empty($time)) {
+            $time = explode("-", $time);
+            if (count($time)>1) {
+                $time = array_map('trim', $time);
+            }
+        }
+
+        if (!empty($time)) {
+            $start_date = "";
+            $end_date = "";
+            if (count($time)>1) {
+                $Ustart_date = strtotime((new DateTime("$date $time[0]"))->format('c'));
+                $Uend_date = strtotime((new DateTime("$date $time[1]"))->format('c'));
+                $start_date = $Ustart_date  * 1000;
+                $end_date = $Uend_date * 1000;
+            } else {
+                $Ustart_date = strtotime((new DateTime("$date 7am"))->format('c'));
+                $Uend_date = strtotime((new DateTime("$date 6pm"))->format('c'));
+                $start_date = $Ustart_date  * 1000;
+                $end_date = $Uend_date * 1000;
+            }
+
+            GFCommon::log_debug("Create Service Request");
+            $service = $this->createService($customer, $start_date, $end_date, $summary_services, $Sumaryservice);
+
+            GFCommon::log_debug("Create Work Order");
+            $work_order = $this->createWorKOrder($service, $start_date, $end_date, $Sumaryservice);
+
+            GFCommon::log_debug("---------------------------------------------------------------------------------------------");
+            $service_forms = $this->form['service_forms'];
+            if (!empty($Sumaryservice) && !empty($service_forms)) {
+                foreach ($Sumaryservice as $form_name) {
+                    GFCommon::log_debug("Attach Service Form ($form_name) to work order");
+
+                    $service_form = $service_forms[$form_name];
+
+                    $AttachedServiceFormId = $this->attachServiceFormToWorkOrder($work_order, $service_form['id']);
+                    GFCommon::log_debug("Attach Service Form ($AttachedServiceFormId) to work order");
+                    GFCommon::log_debug("Starting Fill Fields");
+
+                    foreach ($service_form['fields'] as $field_id => $field) {
+                        $args = [
+                            'ServiceFormFieldId'    => $field_id,
+                            'AttachedServiceFormId' => $AttachedServiceFormId
+                        ];
+                        $path = '';
+                        $response = [];
+
+                        $val = '';
+                        if (in_array($field['type'], ['text', 'select'])) {
+                            $val = rgar($entry, (string) $field['id']);
+                            $args['Value'] = $val;
+                        } elseif ($field['type'] == 'checkbox') {
+                            $gffield = GFFormsModel::get_field($form, $field['id']);
+                            $val = is_object($gffield) ? $gffield->get_value_export($entry) : '';
+                            $val = explode(",", $val);
+                            $val = array_map('trim', $val);
+                            $args['SelectedListItems'] = $val;
+                        } elseif ($field['type'] == 'fileupload') {
+                            $rute_file = rgar($entry, (string) $field['id']);
+                            $path = substr(ABSPATH, 0, -1).parse_url($rute_file, PHP_URL_PATH);
+
+                            if (file_exists($path) && !is_dir($path)) {
+                                $file_info = pathinfo($path);
+                                $args['File'] = [
+                                    "FileName" => $file_info['basename'],
+                                    "ContentType" => mime_content_type($path)
+                                ];
+                                $val = $args;
+                            }
+                        }
+
+                        if (!empty($val)) {
+
+                            $url = $this->baseURL . '/WorkOrderServiceForm/Fill';
+                            $response = $this->send_request($url, 'PUT', json_encode($args));
+
+                            if (!empty($response) && $response['IsSuccess'] && !empty($response['Data']) && $field['type'] == 'fileupload' && file_exists($path) && !is_dir($path)) {
+                                $id_file = $response['Data'];
+                                
+
+                                $url = $this->baseURL . "/ServiceFormFieldFile/$id_file";
+
+                                $headers = $this->apiHeader;
+                                $headers[0] = 'Content-Type: '.mime_content_type($path);
+
+                                $this->send_request($url, 'POST', file_get_contents($path), $headers);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        GFCommon::log_debug("End Set Form");
+        return;
+    }
+}
+
+add_action('plugins_loaded', function () {
+    date_default_timezone_set('America/Chicago');
+    Razorsync_API::getInstance();
+});
